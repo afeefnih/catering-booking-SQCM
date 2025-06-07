@@ -22,6 +22,7 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./cateringdata.sql:/docker-entrypoint-initdb.d/cateringdata.sql
+      - ./database_update.sql:/docker-entrypoint-initdb.d/database_update.sql
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin

@@ -1,0 +1,177 @@
+/* feedback_details.css - Styles for feedback details page */
+
+.container {
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f1f1f1;
+  padding-bottom: 10px;
+}
+
+h1 {
+  color: #333;
+  margin: 0;
+}
+
+h2 {
+  color: #444;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.3em;
+}
+
+.back-btn {
+  background-color: #6c757d;
+  color: white;
+  padding: 8px 15px;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.back-btn:hover {
+  background-color: #5a6268;
+}
+
+.success-message,
+.error-message {
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.feedback-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.details-card {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: calc(50% - 10px);
+}
+
+.full-width {
+  width: 100%;
+}
+
+.detail-row {
+  margin-bottom: 15px;
+  display: flex;
+}
+
+.detail-label {
+  font-weight: bold;
+  width: 150px;
+  color: #555;
+}
+
+.detail-value {
+  flex: 1;
+}
+
+.stars {
+  color: #ffd700;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+.rating-text {
+  color: #555;
+  margin-left: 10px;
+  font-size: 14px;
+}
+
+.feedback-text {
+  background-color: white;
+  padding: 15px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  line-height: 1.5;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #555;
+}
+
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.checkbox-group {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-container input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-primary:hover {
+  background-color: #0069d9;
+}
+
+@media (max-width: 768px) {
+  .details-card {
+    width: 100%;
+  }
+
+  .checkbox-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

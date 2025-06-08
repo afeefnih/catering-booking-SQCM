@@ -12,12 +12,17 @@
             </a>
 
             <nav class="navHeader">
-                <ul class="navList">
-                    <?php // Create a login/logout link:
+                <ul class="navList">                    <?php // Create a login/logout link:
 if (isset($_SESSION['user_id'])) { //successfully login
 	echo '
                     <li class="navItem">
                         <a href="view_customer.php" class="navLink">View Customer</a>
+                    </li>
+                    <li class="navItem">
+                        <a href="view_payment.php" class="navLink">Payment Management</a>
+                    </li>
+                    <li class="navItem">
+                        <a href="view_feedback.php" class="navLink">Feedback Management</a>
                     </li>
                     <li class="navItem">
                         <a href="logout.php" class="navLink">Logout</a>
@@ -32,6 +37,9 @@ if (isset($_SESSION['user_id'])) { //successfully login
                     </li>
 					<li class="navItem">
                         <a href="ContactUs.php" class="navLink">Contact Us</a>
+                    </li>
+                    <li class="navItem">
+                        <a href="feedback.php" class="navLink">Feedback</a>
                     </li>
                     <li class="navItem">
                         <a href="login.php" class="navLink">For Admin</a>

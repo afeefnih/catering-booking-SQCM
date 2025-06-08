@@ -1,16 +1,8 @@
-<html>
-<head>
-    <link rel="stylesheet" href="includes/req_quotation_form.css" type="text/css" media="screen"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-</head>
-<body>
 <?php 
 require("script.php");
 $page_title = 'Free Quotation';
-include ('includes/header.html');
-?>
 
-<?php
+// Handle form submission first (before any HTML output)
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $errors = array();    // Check required fields
     $required_fields = ['occasion', 'event_date', 'event_time', 'budget', 'num_pax', 'event_address', 'location', 'contact_person', 'contact_no', 'email', 'company_name'];
@@ -61,56 +53,110 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Calculate total budget
     if (empty($errors)) {
-        $total_budget = $budget * $num_pax;
-        $total_budget = number_format($total_budget, 2);
+        // Corrected budget calculation and variable usage
+        $numeric_raw_total_budget = (float)$budget * (int)$num_pax;
+        // For DB insertion (and display if needed elsewhere, e.g., email confirmation)
+        $total_budget_for_db = number_format($numeric_raw_total_budget, 2, '.', ''); // Format with . decimal, no thousands separator
 
         // Database connection
-        require('../mysqli_connect.php');        // Insert query
-        $q = "INSERT INTO orders (occasion, event_date, event_time, budget, registration_date, total_budget, num_pax, event_address, location, contact_person, contact_no, email, company_name, special_req, promo_code, subscribe) VALUES ('$occasion', '$event_date', '$event_time', '$budget', NOW(), '$total_budget', '$num_pax', '$event_address', '$location', '$contact_person', '$contact_no', '$email', '$company_name', '$special_req', '$promo_code', '$subscribe')";
-        $r = mysqli_query($dbc, $q);        if ($r) {
-            // Send email
-            $message = "Here are your event details:\n" .
-                        "Occasion: $occasion\n" .
-                        "Event Date: $event_date\n" .
-                        "Event Time: $event_time\n" .
-                        "Event Address: $event_address\n" .
-                        "Location: $location\n" .
-                        "Budget/Pax: RM$budget\n" .
-                        "Number of Pax: $num_pax\n" .
-                        "Total Budget: RM$total_budget\n" .
-                        "Contact Person: $contact_person\n" .
-                        "Contact Number: $contact_no\n" .
-                        "Email: $email\n" .
-                        "Company Name: $company_name\n" .
-                        "Special Request: $special_req\n" .
-                        "Promo Code: $promo_code\n" .
-                        "Subscribe: $subscribe";
-            $response = sendMail($email, "Quotation Details", nl2br($message));
+        require('../mysqli_connect.php');
+        // Insert query - use $total_budget_for_db
+        $q = "INSERT INTO orders (occasion, event_date, event_time, budget, registration_date, total_budget, num_pax, event_address, location, contact_person, contact_no, email, company_name, special_req, promo_code, subscribe) VALUES ('$occasion', '$event_date', '$event_time', '$budget', NOW(), '$total_budget_for_db', '$num_pax', '$event_address', '$location', '$contact_person', '$contact_no', '$email', '$company_name', '$special_req', '$promo_code', '$subscribe')";
+        $r = mysqli_query($dbc, $q);
 
-            echo '<div class="wrapper1">';
-            echo '<h1>Thank you!</h1>';
-            echo '<h2>You are now registered!</h2>';
+        if ($r) { // Order inserted successfully
+            $order_id_for_payment = mysqli_insert_id($dbc);
 
+            // Prepare amount for payment table and ToyyibPay
+            // Use $numeric_raw_total_budget directly for calculations to ensure accuracy
+            $numeric_amount_for_payment_db = $numeric_raw_total_budget;
+            $bill_amount_final_in_sen = (int)round($numeric_amount_for_payment_db * 100);
 
-           echo nl2br($message);
-            echo '<p>-----------------------------------------------------------------------</p>';
-            echo '<p>Thank you for registering with us. We will contact you soon.</p>';
-            if ($response == "success") {
-                echo '<p class="success">Email has been sent successfully.</p>';
-            } else {
-                echo "<p class=\"error\">$response</p>";
+            // Insert initial payment record
+            $q_payment = "INSERT INTO payment (order_id, amount, payment_status, created_at, updated_at) VALUES ('$order_id_for_payment', '$numeric_amount_for_payment_db', 'pending', NOW(), NOW())";
+            $r_payment = mysqli_query($dbc, $q_payment);
+
+            if ($r_payment) {
+                $payment_id = mysqli_insert_id($dbc);
+                require_once('toyyibpay_config.php'); // Include ToyyibPay configuration
+
+                $toyyibpay_data = array(
+                    'userSecretKey' => TOYYIBPAY_USER_SECRET_KEY,
+                    'categoryCode' => TOYYIBPAY_CATEGORY_CODE,
+                    'billName' => 'Catering Order #' . $order_id_for_payment,
+                    'billDescription' => 'Payment for: ' . $occasion . ' by ' . $contact_person,
+                    'billPriceSetting' => 1, // 0 = User decide price, 1 = Fix price
+                    'billPayorInfo' => 1, // 1 = Collect payor info
+                    'billAmount' => $bill_amount_final_in_sen, // This should now have the correct value
+                    'billReturnUrl' => TOYYIBPAY_REDIRECT_URL,
+                    'billCallbackUrl' => TOYYIBPAY_CALLBACK_URL,
+                    'billExternalReferenceNo' => (string)$order_id_for_payment,
+                    'billTo' => $contact_person,
+                    'billEmail' => $email,
+                    'billPhone' => $contact_no,
+                    'billSplitPayment' => 0, // 0 = No split, 1 = Split
+                    'billSplitPaymentArgs' => '',
+                    'billPaymentChannel' => '0', // 0 = FPX, 1 = Credit Card, 2 = FPX & Credit Card
+                );
+
+                $curl = curl_init();
+                curl_setopt($curl, CURLOPT_POST, 1);
+                curl_setopt($curl, CURLOPT_URL, TOYYIBPAY_CREATE_BILL_URL);
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($toyyibpay_data));
+
+                $toyyibpay_response_json = curl_exec($curl);
+                curl_close($curl);
+                $toyyibpay_response_array = json_decode($toyyibpay_response_json, true);
+
+                if (is_array($toyyibpay_response_array) && isset($toyyibpay_response_array[0]['BillCode'])) {
+                    $billCode = $toyyibpay_response_array[0]['BillCode'];
+                    // Update payment table with BillCode
+                    $q_update_payment = "UPDATE payment SET transaction_id = '$billCode' WHERE payment_id = '$payment_id'";
+                    mysqli_query($dbc, $q_update_payment);
+
+                    mysqli_close($dbc);
+                    header('Location: ' . TOYYIBPAY_PAYMENT_URL . $billCode);
+                    exit();
+                } else {
+                    // ToyyibPay bill creation failed
+                    $error_message_toyyibpay = "Could not initiate payment with ToyyibPay.";
+                    if (is_array($toyyibpay_response_array) && !empty($toyyibpay_response_array) && isset($toyyibpay_response_array[0]['msg'])) {
+                         $error_message_toyyibpay .= " Error: " . htmlspecialchars($toyyibpay_response_array[0]['msg']);
+                    } elseif (isset($toyyibpay_response_array['msg'])) { // Check for non-array error structure
+                         $error_message_toyyibpay .= " Error: " . htmlspecialchars($toyyibpay_response_array['msg']);
+                    } else {
+                        // For debugging, you might want to log $toyyibpay_response_json to a server file
+                        // error_log("ToyyibPay Raw Response for Order $order_id_for_payment: " . $toyyibpay_response_json);
+                    }
+                    
+                    echo '<div class="wrapper1">'; 
+                    echo '<h1>Quotation Submitted, Payment Error</h1>';
+                    echo '<p>Your quotation (Order ID: ' . $order_id_for_payment . ') has been successfully submitted. However, we encountered an issue initiating the online payment.</p>';
+                    echo '<p>' . $error_message_toyyibpay . '</p>';
+                    echo '<p>Please contact us to arrange payment. We apologize for any inconvenience.</p>';
+                    echo '</div>';
+                }
+            } else { // Failed to insert into payment table
+                echo '<div class="wrapper1">';
+                echo '<h1>System Error</h1>';
+                echo '<p>Your quotation was submitted, but there was an error recording payment details. Please contact support. Order ID: ' . $order_id_for_payment . '</p>';
+                echo '<p class="error">Database Error: ' . mysqli_error($dbc) . '</p>';
+                echo '</div>';
             }
-            echo '</div>';
+            mysqli_close($dbc); 
+            include('includes/footer.html');
+            exit();
 
-        } else {
+        } else { // Order insertion failed ($r is false)
             echo '<h1>System Error</h1>';
             echo '<p class="error">You could not be registered due to a system error. We apologize for any inconvenience.</p>';
             echo '<p>' . mysqli_error($dbc) . '<br /><br />Query: ' . $q . '</p>';
+            mysqli_close($dbc); 
+            include('includes/footer.html');
+            exit();
         }
-        mysqli_close($dbc);
-        include('includes/footer.html');
-        exit();
-    } else {
+    } else { // $errors is not empty
         // Generate a JavaScript alert with error messages
         echo '<script type="text/javascript">';
         echo 'alert("The following error(s) occurred:\n';
@@ -122,6 +168,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="includes/req_quotation_form.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<?php include ('includes/header.html'); ?>
 
 <script src="jquery-3.7.1.min.js"></script>
 <script>

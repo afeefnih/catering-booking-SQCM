@@ -138,19 +138,37 @@ For your PHP code, the database connection uses:
 - **Database persistence**: Data survives container restarts
 - **No XAMPP needed**: Everything runs in Docker
 
+## 💳 ToyyibPay Payment Gateway Setup
+
+To securely set up the ToyyibPay payment gateway:
+
+1. **Create a Configuration File**:
+   - There is a template file called `toyyibpay_config.example.php` in the Project folder
+   - Create a copy of this file and rename it to `toyyibpay_config.php`
+   - Edit your `toyyibpay_config.php` file with your actual ToyyibPay credentials
+
+2. **Required Credentials**:
+   - `TOYYIBPAY_USER_SECRET_KEY`: Your secret key from ToyyibPay dashboard
+   - `TOYYIBPAY_CATEGORY_CODE`: The category code for your payments
+
+3. **Security Measures**:
+   - The `toyyibpay_config.php` file is automatically ignored by git (added to `.gitignore`)
+   - **IMPORTANT**: Never commit your actual credentials to the repository
+   - Each developer needs their own local copy with their own credentials
+
+4. **For Testing**:
+   - ToyyibPay provides sandbox credentials for testing
+   - Use sandbox credentials during development
+   - Switch to production credentials only for deployment
+
 ## 👥 Team Collaboration
 
 Each team member just needs to:
 
 1. Install Docker Desktop
 2. Clone this repository
-3. **Set up ToyyibPay Configuration:**
-    a. In the `Project` folder, make a copy of `toyyibpay_config.example.php`.
-    b. Rename the copy to `toyyibpay_config.php`.
-    c. Open `Project/toyyibpay_config.php` and replace the placeholder values for `TOYYIBPAY_USER_SECRET_KEY` and `TOYYIBPAY_CATEGORY_CODE` with your actual ToyyibPay credentials.
-    d. **Important**: `toyyibpay_config.php` is listed in `.gitignore` and should **not** be committed to the repository.
-4. Run `docker-compose up -d`
-5. Access <http://localhost:8080>
+3. Run `docker-compose up -d`
+4. Access <http://localhost:8080>
 
 **No more "it works on my machine" problems!** 🎉
 
@@ -239,11 +257,9 @@ Each team member needs to:
 
 1. Install Docker Desktop
 2. Clone this repository
-3. **Set up ToyyibPay Configuration:**
-    a. In the `Project` folder, make a copy of `toyyibpay_config.example.php`.
-    b. Rename the copy to `toyyibpay_config.php`.
-    c. Open `Project/toyyibpay_config.php` and replace the placeholder values for `TOYYIBPAY_USER_SECRET_KEY` and `TOYYIBPAY_CATEGORY_CODE` with your actual ToyyibPay credentials.
-    d. **Important**: `toyyibpay_config.php` is listed in `.gitignore` and should **not** be committed to the repository.
+3. **Set up ToyyibPay Configuration** (refer to the ToyyibPay section above):
+   - Copy `Project/toyyibpay_config.example.php` to `Project/toyyibpay_config.php`
+   - Update with your credentials (never commit this file)
 4. Run `docker-compose up -d`
 5. Access the application at <http://localhost:8080>
 

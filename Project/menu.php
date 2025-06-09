@@ -3,7 +3,7 @@
   <?php
         $page_title = 'Menu';
         include ('includes/header.html');
-      
+        require ('../mysqli_connect.php');
   ?> 
 <head>
   <link rel="stylesheet" href="includes/menu.css">
@@ -253,6 +253,90 @@
     <p>Joe Roast Lamb</p>
 </div>
 </div>
+
+<?php
+$export_query = "SELECT name, category, rating, feedback_text, submission_date 
+                 FROM feedback 
+                 WHERE 1
+                 ORDER BY submission_date DESC";
+$export_result = mysqli_query($dbc, $export_query);
+?>
+
+<style>
+    .feedback-container {
+        max-width: 1050px;
+        margin: 0 auto;
+        padding: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+    }
+
+    .feedback-box {
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        width: 300px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid #ddd;
+    }
+
+    .feedback-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    .feedback-box h3 {
+        margin: 0 0 10px;
+        font-size: 20px;
+        color: #333;
+    }
+
+    .meta {
+        font-size: 14px;
+        color: #777;
+        margin-bottom: 10px;
+    }
+
+    .stars {
+        color: #f5a623;
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+
+    .feedback-text {
+        font-size: 15px;
+        color: #444;
+        line-height: 1.5;
+    }
+
+    .feedback-box h3 {
+    margin: 0 0 10px;
+    font-size: 16px;
+    color: #333;
+}
+</style>
+
+
+<h1>Feedback from Our Client</h1>
+<div class="feedback-container">
+<?php if (mysqli_num_rows($export_result) === 0): ?>
+    <p>No feedback available.</p>
+<?php else: ?>
+    <?php while ($row = mysqli_fetch_assoc($export_result)): ?>
+        <div class="feedback-box">
+            <h3 ><?= htmlspecialchars($row['name']) ?></h3>
+            <div class="meta"><?= htmlspecialchars($row['category']) ?> | <?= date("F j, Y", strtotime($row['submission_date'])) ?></div>
+            <div class="stars"><?= str_repeat("★", $row['rating']) . str_repeat("☆", 5 - $row['rating']) ?></div>
+            <div class="feedback-text"><?= nl2br(htmlspecialchars($row['feedback_text'])) ?></div>
+        </div>
+    <?php endwhile; ?>
+<?php endif; ?>
+</div>
+
+
 
 </body>
 <?php include ('includes/footer.html'); ?>

@@ -269,8 +269,3 @@ Each team member needs to:
 - If containers won't start, check Docker Desktop is running
 - Use `docker-compose logs` to see error messages
 
-## Files Added for Docker
-
-- `Dockerfile` - PHP/Apache configuration
-- `docker-compose.yml` - Multi-container setup
-- `.dockerignore` - Files to exclude from Docker build

@@ -167,8 +167,11 @@ Each team member just needs to:
 
 1. Install Docker Desktop
 2. Clone this repository
-3. Run `docker-compose up -d`
-4. Access <http://localhost:8080>
+3. **Set up ToyyibPay Configuration** (refer to the ToyyibPay section above):
+   - Copy `Project/toyyibpay_config.example.php` to `Project/toyyibpay_config.php`
+   - Update with your credentials (never commit this file)
+4. Run `docker-compose up -d`
+5. Access the application at <http://localhost:8080>
 
 **No more "it works on my machine" problems!** 🎉
 
@@ -251,21 +254,5 @@ docker-compose restart
 docker-compose down -v
 ```
 
-### 6. Team Collaboration
 
-Each team member needs to:
-
-1. Install Docker Desktop
-2. Clone this repository
-3. **Set up ToyyibPay Configuration** (refer to the ToyyibPay section above):
-   - Copy `Project/toyyibpay_config.example.php` to `Project/toyyibpay_config.php`
-   - Update with your credentials (never commit this file)
-4. Run `docker-compose up -d`
-5. Access the application at <http://localhost:8080>
-
-### 7. Troubleshooting
-
-- If port 8080 is already in use, change it in `docker-compose.yml`
-- If containers won't start, check Docker Desktop is running
-- Use `docker-compose logs` to see error messages
 
